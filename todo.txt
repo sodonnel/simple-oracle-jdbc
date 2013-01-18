@@ -1,0 +1,18 @@
+Allow more types to override the Ruby type, eg Time as Timestamp, if that is sensible??
+  -- Date as a Timestamp
+  -- String as a CLOB
+  -- String as a CHAR
+
+Bindable types that are not yet supported:
+  -- passing a ref_cursor into a proc
+  -- binding a CLOB to a procedure
+
+Types that cannot be retrieved from an SQL result set
+  -- CLOB
+  -- Cursor
+  -- Long
+  -- nvarchar etc
+
+Consider making ref_cursors be returned in a different object to the SQL object.
+
+
