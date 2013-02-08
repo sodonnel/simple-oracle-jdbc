@@ -16,13 +16,27 @@ module SimpleOracleJDBC
 
     # Takes a JDBC database connection and a procedure call and returns a
     # SimpleOracleJDBC object after preparing the procedure call. The prepared
-    # JDBC callable statement is stored in @call
+    # JDBC callable statement is stored in @call.
+    #
+    # @example Preparing a procedure call
+    #     call = DBCall.prepare(conn, "begin my_proc(:b1, :b2, :b3); end;")
     def self.prepare(conn, sql)
       call = new(conn, sql)
     end
 
     # Takes a JDBC database connection, a procedure call and an optional set of binds and
     # returns a SimpleOracleJDBC object after preparing and executing the procedure call.
+    # Input bind variables can be passed as simple values. If a value must be passed as null
+    # it should be passed in an array with a type:
+    #
+    #     [String, nil]
+    #
+    # TO mark a bind as an out or inout parameter use an array with three elements:
+    #
+    #     [String, nil, :out]
+    #
+    # @example Procedure Call with several binds
+    #    call = DBCall.execute(conn, "begin my_proc(:b1, :b2, :b3); end;", "Input 1 value", [String, nil], [Float, nil, :out])
     def self.execute(conn, sql, *binds)
       call = new(conn,sql)
       call.execute(*binds)
@@ -38,6 +52,10 @@ module SimpleOracleJDBC
     # Executes the prepared callable statement stored in @call.
     #
     # The passed list of bind variables are bound to the object before it is executed.
+    # Seen the class method Execute for a definition of how to bind nulls and in/out parameters
+    #
+    # @example Procedure Call with several binds
+    #    call = DBCall.execute(conn, "begin my_proc(:b1, :b2, :b3); end;", "Input 1 value", [String, nil], [Float, nil, :out])
     def execute(*binds)
       @binds = binds
       @binds.each_with_index do |b,i|
@@ -63,7 +81,7 @@ module SimpleOracleJDBC
     #
     # The bind variables are indexed from 1.
     #
-    # If a refcursor is return, it is retrieved as a SimpleOracleJDBC::Sql object. Other
+    # If a refcursor is returned, it is retrieved as a SimpleOracleJDBC::Sql object. Other
     # values are returned as Ruby classes, such as Date, Time, String, Float etc.
     def [](i)
       if i < 1
