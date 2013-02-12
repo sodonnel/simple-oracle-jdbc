@@ -67,6 +67,7 @@ module SimpleOracleJDBC
         bind_value(@statement, b, i+1)
       end
 
+      # What about a select that starts with the WITH clause?
       unless @sql =~ /^\s*select/i
         @result_set = nil
         @statement.execute()
