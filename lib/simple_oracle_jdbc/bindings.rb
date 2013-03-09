@@ -8,6 +8,7 @@ module SimpleOracleJDBC
       Date       => OracleTypes::DATE,
       Time       => OracleTypes::TIMESTAMP,
       String     => OracleTypes::VARCHAR,
+   #   Clob       => OracleTypes::VARCHAR,
       Fixnum     => OracleTypes::INTEGER,
       Integer    => OracleTypes::INTEGER,
       Bignum     => OracleTypes::NUMERIC,
@@ -98,7 +99,7 @@ module SimpleOracleJDBC
         retrieve_time(obj, i)
       when 'TIMESTAMP'
         retrieve_time(obj, i)
-      when 'CHAR', 'VARCHAR2'
+      when 'CHAR', 'VARCHAR2', 'CLOB'
         retrieve_string(obj, i)
       else
         raise UnknownSQLType, obj.get_meta_data.get_column_type_name(i)
@@ -150,7 +151,13 @@ module SimpleOracleJDBC
 
     def bind_number(obj, v, i)
       if v
-        obj.set_number(i, Java::OracleSql::NUMBER.new(v))
+        # Avoid warning that appeared in JRuby 1.7.3. There are many signatures of
+        # Java::OracleSql::NUMBER and it has to pick one. This causes a warning. This
+        # technique works around the warning and forces it to the the signiture with a
+        # double input - see https://github.com/jruby/jruby/wiki/CallingJavaFromJRuby
+        # under the Constructors section.
+        construct = Java::OracleSql::NUMBER.java_class.constructor(Java::double)
+        obj.set_number(i, construct.new_instance(v))
       else
         obj.set_null(i, OracleTypes::NUMBER)
       end
@@ -165,8 +172,7 @@ module SimpleOracleJDBC
     def retrieve_date(obj, i)
       jdate = obj.get_date(i)
       if jdate
-        rt = Time.at(jdate.date_value.get_time.to_f / 1000)
-        Date.new(rt.year, rt.month, rt.day)
+        Date.new(jdate.get_year+1900, jdate.get_month+1, jdate.get_date)
       else
         nil
       end

@@ -7,7 +7,7 @@ require 'test/unit'
 module TestHelper
 
   DB_USER     = 'sodonnel'
-  DB_PASSWORD = 'sodonnel'
+  DB_PASSWORD = 'sodonnell'
   DB_SERVICE  = 'local11gr2.world'
   DB_HOST     = 'localhost'
   DB_PORT     = '1521'
