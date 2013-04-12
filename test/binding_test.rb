@@ -220,5 +220,13 @@ class BindingTest < Test::Unit::TestCase
     assert_equal(results[0][0], nil)
   end
 
+  def test_unknown_data_type_from_sql_raises_exeception
+    sql = @interface.execute_sql("select cast('hello there' as nvarchar2(1000)) from dual")
+    assert_raises SimpleOracleJDBC::UnknownSQLType do
+      results = sql.all_array
+    end
+  end
+
+
 
 end

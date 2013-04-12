@@ -12,7 +12,7 @@ module SimpleOracleJDBC
   end
   class UnknownBindType < Exception
   end
-  class UnknowSQLType < Exception
+  class UnknownSQLType < Exception
   end
 
   class Interface
