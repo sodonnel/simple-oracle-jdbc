@@ -74,13 +74,14 @@ module SimpleOracleJDBC
 
     # Closes the result set if it exists, and also closes the SQL statement that created the result
     # set.
-    # TODO - does it make sense to close the statement here too?
     def close_result_set
       if @result_set
         @result_set.close
         @result_set = nil
       end
-      close_statement
+      if @auto_statement_close
+        close_statement
+      end
     end
 
     private

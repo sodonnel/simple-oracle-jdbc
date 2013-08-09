@@ -31,12 +31,14 @@ module SimpleOracleJDBC
     # Creates a new instance of this class. Not intended to be used directly. Use the factory
     # class methods prepare or execute instead.
     def initialize
+      @auto_statement_close = true
     end
 
     # Takes a JDBC connection object and an SQL statement and returns a SimpleOracleJDBC::Sql
     # object with the prepared statement.
     def self.prepare(connection, sql)
       sql_object = self.new
+      sql_object.disable_auto_statement_close
       sql_object.prepare(connection,sql)
     end
 
@@ -71,7 +73,9 @@ module SimpleOracleJDBC
       unless @sql =~ /^\s*select/i
         @result_set = nil
         @statement.execute()
-        close_statement
+        if @auto_statement_close
+          close_statement
+        end
       else
         @result_set = @statement.execute_query()
       end
@@ -90,6 +94,18 @@ module SimpleOracleJDBC
         @statement.close
         @statement = nil
       end
+    end
+
+
+    # If a statement was prepared, it is likely it is going to be reused, so the statement
+    # handle should not be closed after execution.
+    #
+    # If the statement is directly executed, then the prepared handle was never requested
+    # and so it probably should be closed.
+    #
+    # This method is called by the prepare class/factory method
+    def disable_auto_statement_close
+      @auto_statement_close = false
     end
 
   end
