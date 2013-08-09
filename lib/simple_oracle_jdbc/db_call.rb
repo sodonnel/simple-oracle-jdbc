@@ -102,6 +102,8 @@ module SimpleOracleJDBC
           retrieve_number(@call, i)
         elsif bind[0] == :refcursor
           retrieve_refcursor(@call, i)
+        elsif bind[0] == :raw
+          retrieve_raw(@call, i)
         end
       else
         # If its not an array, it was just an IN, so just pull the bind

@@ -13,7 +13,8 @@ module SimpleOracleJDBC
       Integer    => OracleTypes::INTEGER,
       Bignum     => OracleTypes::NUMERIC,
       Float      => OracleTypes::NUMERIC,
-      :refcursor => OracleTypes::CURSOR
+      :refcursor => OracleTypes::CURSOR,
+      :raw       => OracleTypes::RAW
     }
 
     # Given a JDBC prepared call or prepared statement, a value and a bind index, the value
@@ -78,6 +79,8 @@ module SimpleOracleJDBC
         bind_number(obj, value, i)
       elsif type == :refcursor
         bind_refcursor(obj, value, i)
+      elsif type == :raw
+        bind_raw(obj, value, i)
       else
         raise UnknownBindType, type.to_s
       end
@@ -101,6 +104,8 @@ module SimpleOracleJDBC
         retrieve_time(obj, i)
       when 'CHAR', 'VARCHAR2', 'CLOB'
         retrieve_string(obj, i)
+      when 'RAW'
+        retrieve_raw(obj, i)
       else
         raise UnknownSQLType, obj.get_meta_data.get_column_type_name(i)
       end
@@ -169,6 +174,16 @@ module SimpleOracleJDBC
       end
     end
 
+    def bind_raw(obj, v, i)
+      if v
+        raw = Java::OracleSql::RAW.new(v)
+        obj.set_raw(i, raw)
+      else
+        obj.set_null(i, OracleTypes::RAW)
+      end
+    end
+
+
     def retrieve_date(obj, i)
       jdate = obj.get_date(i)
       if jdate
@@ -214,6 +229,15 @@ module SimpleOracleJDBC
       results = Sql.new
       results.result_set = rset
       results
+    end
+
+    def retrieve_raw(obj, i)
+      v = obj.get_raw(i)
+      if v
+        v.string_value
+      else
+        nil
+      end
     end
 
   end

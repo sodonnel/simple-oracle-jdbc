@@ -127,6 +127,24 @@ class BindingTest < Test::Unit::TestCase
     assert_equal(rows[0][0], 'X')
   end
 
+  def test_raw_can_be_bound_and_retrieved
+    call = @interface.prepare_proc("begin
+                                     :l_raw := :i_raw;
+                                   end;")
+    call.execute([:raw, nil, :out], [:raw, "DEDEDEDEFF"])
+    assert(call[1].is_a?(String), "Ensure a string is returned")
+    assert(call[1], "DEDEDEDEFF")
+  end
+
+  def test_null_raw_can_be_bound_and_retrieved
+    call = @interface.prepare_proc("begin
+                                     :l_raw := :i_raw;
+                                   end;")
+    call.execute([:raw, nil, :out], [:raw, nil])
+    assert_nil(call[1])
+  end
+
+
   def test_unknown_data_type_raises_exeception_when_bound
     call = @interface.prepare_proc("begin
                                      :l_date := :i_date;
@@ -219,6 +237,19 @@ class BindingTest < Test::Unit::TestCase
     results = sql.all_array
     assert_equal(results[0][0], nil)
   end
+
+  def test_raw_is_retrieved_as_ruby_string
+    sql = @interface.execute_sql("select cast('DFDFDFDF' as raw(16)) from dual")
+    results = sql.all_array
+    assert_equal(results[0][0], "DFDFDFDF")
+  end
+
+  def test_null_raw_is_retrieved_as_nil
+    sql = @interface.execute_sql("select cast(null as raw(16)) from dual")
+    results = sql.all_array
+    assert_equal(results[0][0], nil)
+  end
+
 
   def test_unknown_data_type_from_sql_raises_exeception
     sql = @interface.execute_sql("select cast('hello there' as nvarchar2(1000)) from dual")
