@@ -46,7 +46,8 @@ module SimpleOracleJDBC
     #      Integer    => OracleTypes::INTEGER,
     #      Bignum     => OracleTypes::NUMERIC,
     #      Float      => OracleTypes::NUMERIC,
-    #      :refcursor => OracleTypes::CURSOR
+    #      :refcursor => OracleTypes::CURSOR,
+    #      :raw       => OracleTypes::RAW
     #    }
     #
     # Note that to bind a ref_cursor, there is no natural Ruby class, so it can only be bound using

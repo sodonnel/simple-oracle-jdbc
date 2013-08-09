@@ -130,7 +130,8 @@ The best way to learn how to use Simple Oracle JDBC is to read through the sampl
     #      Integer    => OracleTypes::INTEGER,
     #      Bignum     => OracleTypes::NUMERIC,
     #      Float      => OracleTypes::NUMERIC,
-    #      :refcursor => OracleTypes::CURSOR
+    #      :refcursor => OracleTypes::CURSOR,
+    #      :raw       => OracleTypes::RAW
     #    }
     #
     # The second element is the value, which should be nil for out parameters and can take a
