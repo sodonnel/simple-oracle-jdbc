@@ -24,29 +24,30 @@ module SimpleOracleJDBC
     include Binding
     include ResultSet
 
-    attr_reader :statement, :sql, :result_set
+    attr_reader :connection, :statement, :sql, :result_set
 
     attr_writer :result_set
 
     # Creates a new instance of this class. Not intended to be used directly. Use the factory
     # class methods prepare or execute instead.
-    def initialize
+    def initialize(connection)
+      @connection = connection
       @auto_statement_close = true
     end
 
     # Takes a JDBC connection object and an SQL statement and returns a SimpleOracleJDBC::Sql
     # object with the prepared statement.
     def self.prepare(connection, sql)
-      sql_object = self.new
+      sql_object = self.new(connection)
       sql_object.disable_auto_statement_close
-      sql_object.prepare(connection,sql)
+      sql_object.prepare(sql)
     end
 
     # Takes a JDBC connection object, an SQL statement and an optional list of bind variables and
     # will prepare and execute the sql statement, returning an SimpleOracle::Sql object.
     def self.execute(connection, sql, *binds)
-      sql_object = self.new
-      sql_object.prepare(connection, sql)
+      sql_object = self.new(connection)
+      sql_object.prepare(sql)
       sql_object.execute(*binds)
     end
 
@@ -54,9 +55,9 @@ module SimpleOracleJDBC
     # and a JDBC prepared statement will be stored in @statement.
     #
     # This method returns self to allow calls to be chained.
-    def prepare(connection, sql)
+    def prepare(sql)
       @sql = sql
-      @statement = connection.prepare_statement(@sql)
+      @statement = @connection.prepare_statement(@sql)
       self
     end
 

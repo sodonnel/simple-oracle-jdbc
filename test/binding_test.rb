@@ -6,7 +6,7 @@ class BindingTest < Test::Unit::TestCase
 
   def setup
     @interface = @@interface
-    @sql = SimpleOracleJDBC::Sql.new
+    @sql = SimpleOracleJDBC::Sql.new(@interface.connection)
   end
 
   def teardown

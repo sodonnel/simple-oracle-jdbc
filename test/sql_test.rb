@@ -6,7 +6,7 @@ class SqlTest < Test::Unit::TestCase
 
   def setup
     @interface = @@interface
-    @sql = SimpleOracleJDBC::Sql.new
+    @sql = SimpleOracleJDBC::Sql.new(@interface.connection)
   end
 
   def teardown
@@ -34,9 +34,8 @@ class SqlTest < Test::Unit::TestCase
   end
 
   def test_prepare_method_available_and_returns_self
-    sql_obj = SimpleOracleJDBC::Sql.new
-    prepared = sql_obj.prepare(@interface.connection, 'select * from dual')
-    assert_equal(prepared, sql_obj)
+    prepared = @sql.prepare('select * from dual')
+    assert_equal(prepared, @sql)
   end
 
   def test_execute_method_avaliable_and_returns_self
@@ -57,9 +56,8 @@ class SqlTest < Test::Unit::TestCase
   end
 
   def test_close_does_not_error_when_no_statement
-    sql_obj = SimpleOracleJDBC::Sql.new
     assert_nothing_raised do
-      sql_obj.close
+      @sql.close
     end
   end
 

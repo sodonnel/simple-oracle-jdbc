@@ -227,7 +227,8 @@ module SimpleOracleJDBC
 
     def retrieve_refcursor(obj, i)
       rset = obj.get_object(i)
-      results = Sql.new
+      # Dummy connection passed as it is never needed?
+      results = Sql.new(nil)
       results.result_set = rset
       results
     end
