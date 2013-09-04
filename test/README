@@ -1,0 +1,129 @@
+For the test suit to run the Oracle objects below must be created upfront.
+
+  ** The test harness will not create them - maybe in the future ... **
+
+Right now, these objects are only needed to test the array functionality.
+
+
+create or replace type t_varchar2_tab is table of varchar2(100);
+/
+
+create or replace type t_char_tab is table of char(100);
+/
+
+create or replace type t_integer_tab is table of integer;
+/
+
+create or replace type t_number_tab is table of number;
+/
+
+create or replace type t_date_tab is table of date;
+/
+
+create or replace type t_timestamp_tab is table of timestamp;
+/
+
+create or replace type t_raw_tab is table of raw(100);
+/
+
+
+create or replace function test_array_varchar(i_array t_varchar2_tab)
+  return t_varchar2_tab
+is
+  v_return_value t_varchar2_tab;
+begin
+  v_return_value := t_varchar2_tab();
+  for i in 1..i_array.count loop
+    v_return_value.extend(1);
+    v_return_value(v_return_value.count) := i_array(i);
+  end loop;
+  return v_return_value;
+end;
+/
+
+create or replace function test_array_char(i_array t_char_tab)
+  return t_char_tab
+is
+  v_return_value t_char_tab;
+begin
+  v_return_value := t_char_tab();
+  for i in 1..i_array.count loop
+    v_return_value.extend(1);
+    v_return_value(v_return_value.count) := i_array(i);
+  end loop;
+  return v_return_value;
+end;
+/
+
+
+create or replace function test_array_integer(i_array t_integer_tab)
+  return t_integer_tab
+is
+  v_return_value t_integer_tab;
+begin
+  v_return_value := t_integer_tab();
+  for i in 1..i_array.count loop
+    v_return_value.extend(1);
+    v_return_value(v_return_value.count) := i_array(i);
+  end loop;
+  return v_return_value;
+end;
+/
+
+
+create or replace function test_array_number(i_array t_number_tab)
+  return t_number_tab
+is
+  v_return_value t_number_tab;
+begin
+  v_return_value := t_number_tab();
+  for i in 1..i_array.count loop
+    v_return_value.extend(1);
+    v_return_value(v_return_value.count) := i_array(i);
+  end loop;
+  return v_return_value;
+end;
+/
+
+
+create or replace function test_array_date(i_array t_date_tab)
+  return t_date_tab
+is
+  v_return_value t_date_tab;
+begin
+  v_return_value := t_date_tab();
+  for i in 1..i_array.count loop
+    v_return_value.extend(1);
+    v_return_value(v_return_value.count) := i_array(i);
+  end loop;
+  return v_return_value;
+end;
+/
+
+create or replace function test_array_timestamp(i_array t_timestamp_tab)
+  return t_timestamp_tab
+is
+  v_return_value t_timestamp_tab;
+begin
+  v_return_value := t_timestamp_tab();
+  for i in 1..i_array.count loop
+    v_return_value.extend(1);
+    v_return_value(v_return_value.count) := i_array(i);
+  end loop;
+  return v_return_value;
+end;
+/
+
+create or replace function test_array_raw(i_array t_raw_tab)
+  return t_raw_tab
+is
+  v_return_value t_raw_tab;
+begin
+  v_return_value := t_raw_tab();
+  for i in 1..i_array.count loop
+    v_return_value.extend(1);
+    v_return_value(v_return_value.count) := i_array(i);
+  end loop;
+  return v_return_value;
+end;
+/

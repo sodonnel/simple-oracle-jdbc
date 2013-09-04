@@ -190,6 +190,76 @@ The best way to learn how to use Simple Oracle JDBC is to read through the sampl
 
 Basic Ruby types are mapped automatically into the correct types for JDBC interaction, and the JDBC types are mapped back to Ruby types when they are retrieved from the database.
 
+# PLSQL Arrays
+
+Passing arrays to and from PLSQL objects is somewhat painful. To do this, you need to create type objects on the database, eg:
+
+    create or replace type t_varchar_tab is table of varchar2(100);
+    /
+
+Then you can define PLSQL functions to have input or output parameters of that type, eg:
+
+    create or replace function test_array_varchar(i_array t_varchar2_tab)
+      return t_varchar2_tab
+    is
+      v_return_value t_varchar2_tab;
+    begin
+      v_return_value := t_varchar2_tab();
+      for i in 1..i_array.count loop
+        v_return_value.extend(1);
+        v_return_value(v_return_value.count) := i_array(i);
+      end loop;
+      return v_return_value;
+    end;
+    /
+
+Using the type and function defined above, you can pass an array to the function and receive the result using a similar interface as normal values:
+
+    call = conn.prepare_proc("begin
+                                :out_array := test_array_varchar(:i_array);
+                              end;")
+    call.execute([SimpleOracleJDBC::OraArray, SimpleOracleJDBC::OraArray.new('t_varchar2_tab', nil), :out],
+                 SimpleOracleJDBC::OraArray.new('t_varchar2_tab', ['abc', 'def', nil]))
+    return_array = call[1]
+    return_array.each do |v|
+      puts "The value is: #{v}"
+    end
+
+    # The value is: abc
+    # The value is: def
+    # The value is:
+
+There are a few important differences in the syntax for array calls.
+
+To pass an array in, you must create a SimpleOracleJDBC::OraArray object. This takes 2 parameters:
+
+1. The name of the type on the Oracle database
+2. A Ruby array of values to pass to Oracle.
+
+Right now, an array of Integers, Floats, String, Dates or Times is supported. Nil values are allowed (as shown in the example above).
+
+To receive an array of values, again use the SimpleOracleJDBC::OraArray class. The syntax is similar to receiving any output variable from a stored procedure (ie the 3 element array syntax), except the 2nd element in the array is no longer nil. It is important to create an instance of the OraArray object using the name of the Oracle Type, as this is required to retrieve the results from the PLSQL call.
+
+For in out parameters, simply use the 3 element array syntax as with out parameters, only pass a Ruby array as the second parameter.
+
+The array feature has been tested with Oracle arrays of char, varchar2, integer, number, date, timestamp and raw.
+
+## What about Record Types and Arrays of Records?
+
+Maybe someday!
+
+# SQL Arrays
+
+Similar to PLSQL arrays, it is possible to bind an array of values to an SQL call:
+
+        sql = @interface.execute_sql("select * from table(:b_tab)", 
+                                     SimpleOracleJDBC::OraArray.new('t_varchar2_tab', ['abc', 'def']))
+
+Again, instead of passing a simple Ruby type, you need to pass an instance of OraArray as the bind variable.
+
+More complex types are not yet supported.
+
+
 # TODO (AKA missing features)
 
 Bindable types that are not yet supported:

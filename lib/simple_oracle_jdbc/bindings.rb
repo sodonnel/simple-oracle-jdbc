@@ -64,7 +64,7 @@ module SimpleOracleJDBC
         value = v[1]
 
         if v.length == 3
-          bind_out_parameter(obj, i, type)
+          bind_out_parameter(obj, i, type, value)
         end
       end
 
@@ -82,6 +82,8 @@ module SimpleOracleJDBC
         bind_refcursor(obj, value, i)
       elsif type == :raw
         bind_raw(obj, value, i)
+      elsif type == SimpleOracleJDBC::OraArray
+        value.bind_to_call(@connection, obj, i)
       else
         raise UnknownBindType, type.to_s
       end
@@ -113,9 +115,13 @@ module SimpleOracleJDBC
     end
 
     # :nodoc:
-    def bind_out_parameter(obj, index, type)
-      internal_type = RUBY_TO_JDBC_TYPES[type] || OracleTypes::VARCHAR
-      obj.register_out_parameter(index, internal_type)
+    def bind_out_parameter(obj, index, type, value)
+      if type == SimpleOracleJDBC::OraArray
+        value.register_as_out_parameter(@connection, obj, index)
+      else
+        internal_type = RUBY_TO_JDBC_TYPES[type] || OracleTypes::VARCHAR
+        obj.register_out_parameter(index, internal_type)
+      end
     end
 
     def bind_date(obj, v, i)

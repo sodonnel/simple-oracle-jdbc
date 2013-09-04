@@ -42,7 +42,7 @@ class BindingTest < Test::Unit::TestCase
     call = @interface.prepare_proc("begin
                                      :l_date := :i_date;
                                    end;")
-    t = Time.now
+    t = Time.gm(2013,1,1,12,34,23)
     call.execute([Time, nil, :out], t)
     assert_equal(t, call[1])
     assert(call[1].is_a? Time)
@@ -250,6 +250,13 @@ class BindingTest < Test::Unit::TestCase
     assert_equal(results[0][0], nil)
   end
 
+  def test_array_can_be_bound_to_sql
+    sql = @interface.execute_sql("select * from table(:b_tab)", SimpleOracleJDBC::OraArray.new('t_varchar2_tab', ['abc', 'def']))
+    results = sql.all_array
+    assert_equal(2, results.length)
+    assert_equal('abc', results[0][0])
+    assert_equal('def', results[1][0])
+  end
 
   def test_unknown_data_type_from_sql_raises_exeception
     sql = @interface.execute_sql("select cast('hello there' as nvarchar2(1000)) from dual")
