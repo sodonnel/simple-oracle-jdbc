@@ -1,6 +1,6 @@
 require 'helper'
 
-class BindingTest < Test::Unit::TestCase
+class OraArrayTest < Test::Unit::TestCase
 
   include TestHelper
 
