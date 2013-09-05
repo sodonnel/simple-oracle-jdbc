@@ -5,18 +5,25 @@ module SimpleOracleJDBC
 
     attr_reader :ora_type
 
-    # This must be initialized with the name
-    # of the Oracle array type, ie the t_name
-    # is table of varchar2(10) etc.
+    # This must be initialized with the name of the Oracle array type as defined
+    # on the database, ie the t_name is table of varchar2(10);
+    #
+    # Values must be an array of Ruby objects, or nil. The values in the array
+    # will be cast into the appropriate Oracle type depending on the definition
+    # of the array defined in Oracle.
     def initialize(ora_type, values)
       @ora_type   = ora_type.upcase
       self.values = values
       @descriptor = nil
     end
 
-    # Set or reset the values stored in this Object. This allows the same
-    # object to be reused many times, saving calls to the database to
-    # describe the array type.
+    # Values must be a Ruby array of objects or nil.
+    #
+    # While the values can be set in upon object initialization, this method
+    # allows them to be changed. The one advantage is that it allows the
+    # array descriptor to be reused across many database calls. As this must
+    # be queried from the database, it requires 1 database round trip for each new object,
+    # but is cached inside the object once it is initialized.
     def values=(value_array)
       if value_array and !value_array.is_a? Array
         raise "The values must be a Ruby array, not #{value_array.class}"
@@ -24,6 +31,9 @@ module SimpleOracleJDBC
       @values = value_array || Array.new
     end
 
+    # Given a database connection, a prepared statement and a bind index,
+    # this method will bind the array of values (set at object initialization time
+    # or by the values= method) to the statement.
     def bind_to_call(conn, stmt, index)
       # First thing that is need is a descriptor for the given type
       set_descriptor(conn)
@@ -45,11 +55,15 @@ module SimpleOracleJDBC
       stmt.set_object(index, ora_array)
     end
 
+    # Given a database connection, a prepared statement and a bind index,
+    # register the bind at that index as an out or inout parameter.
     def register_as_out_parameter(conn, stmt, index)
       set_descriptor(conn)
       stmt.register_out_parameter(index, OracleTypes::ARRAY, @ora_type)
     end
 
+    # After executing a statement, retrieve the resultant array from Oracle
+    # returning a Ruby array of Ruby objects.
     def retrieve_out_value(conn, stmt, index)
       set_descriptor(conn)
       ora_array = stmt.get_array(index)
