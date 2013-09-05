@@ -8,8 +8,18 @@ module SimpleOracleJDBC
     # is table of varchar2(10) etc.
     def initialize(ora_type, values)
       @ora_type   = ora_type.upcase
-      @values = values || Array.new
+      self.values = values
       @descriptor = nil
+    end
+
+    # Set or reset the values stored in this Object. This allows the same
+    # object to be reused many times, saving calls to the database to
+    # describe the array type.
+    def values=(value_array)
+      if value_array and !value_array.is_a? Array
+        raise "The values must be a Ruby array, not #{value_array.class}"
+      end
+      @values = value_array || Array.new
     end
 
     def bind_to_call(conn, stmt, index)

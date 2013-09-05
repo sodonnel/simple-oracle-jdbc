@@ -188,4 +188,27 @@ class BindingTest < Test::Unit::TestCase
     assert_equal(0, return_array.length)
   end
 
+  def test_ora_array_object_can_be_reused_with_different_values
+    call = @interface.prepare_proc("begin
+                                      :out_value := test_array_raw(:i_array);
+                                    end;")
+    data_array = ['DEDEDE', 'ABABAB']
+    input_array_obj =  SimpleOracleJDBC::OraArray.new('t_raw_tab', data_array)
+    output_array_obj = SimpleOracleJDBC::OraArray.new('t_raw_tab', nil)
+    call.execute([SimpleOracleJDBC::OraArray, output_array_obj, :out], input_array_obj)
+    return_array = call[1]
+    assert_equal(2, return_array.length)
+
+    input_array_obj.values= ["121212", "AADDAADD", "01"]
+    call.execute([SimpleOracleJDBC::OraArray, output_array_obj, :out], input_array_obj)
+    return_array = call[1]
+    assert_equal(3, return_array.length)
+  end
+
+  def test_exception_raised_if_values_passed_is_not_array
+    assert_raises RuntimeError do
+      input_array_obj =  SimpleOracleJDBC::OraArray.new('t_raw_tab', 'string')
+    end
+  end
+
 end
