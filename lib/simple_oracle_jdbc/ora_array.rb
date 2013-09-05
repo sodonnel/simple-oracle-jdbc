@@ -1,6 +1,8 @@
 module SimpleOracleJDBC
 
   class OraArray
+    include TypeMap
+
     attr_reader :ora_type
 
     # This must be initialized with the name
@@ -25,15 +27,19 @@ module SimpleOracleJDBC
     def bind_to_call(conn, stmt, index)
       # First thing that is need is a descriptor for the given type
       set_descriptor(conn)
-      internal_type = @descriptor.get_base_name
+      base_type = @descriptor.get_base_name
 
       jarray = nil
-      if internal_type == 'DATE' or internal_type == 'TIMESTAMP'
-        # need to convert ruby dates / times to Java
-        jarray = @values.map{|i| date_to_java(i) }.to_java
-      else
-        # other types seems to be handled OK by default
+      if base_type == 'VARCHAR' or base_type == 'CHAR'
         jarray = @values.to_java
+      elsif base_type == 'RAW'
+        jarray = @values.map{|i| ruby_raw_string_as_jdbc_raw(i) }.to_java
+      elsif base_type == 'NUMBER' or base_type == 'INTEGER'
+        jarray = @values.map{|i| ruby_number_as_jdbc_number(i) }.to_java
+      elsif base_type == 'DATE' or base_type == 'TIMESTAMP'
+        jarray = @values.map{|i| ruby_any_date_as_jdbc_date(i) }.to_java
+      else
+        raise "#{base_type}: Unimplemented Array Type"
       end
       ora_array = ARRAY.new(@descriptor, conn, jarray)
       stmt.set_object(index, ora_array)
@@ -52,7 +58,7 @@ module SimpleOracleJDBC
         retrieve_as_string(ora_array)
       elsif base_type == 'RAW'
         retrieve_as_raw(ora_array)
-      elsif base_type == 'NUMBER'
+      elsif base_type == 'NUMBER' or base_type == 'INTEGER'
         retrieve_as_number(ora_array)
       elsif base_type == 'DATE' or base_type == 'TIMESTAMP'
         retrieve_as_date(ora_array)
@@ -72,30 +78,16 @@ module SimpleOracleJDBC
     end
 
     def retrieve_as_number(ora_array)
-      ora_array.get_array.to_a.map{|v| v ? v.double_value : nil }
+      ora_array.get_array.to_a.map{|v| java_number_as_float(v) }
     end
 
     def retrieve_as_raw(ora_array)
-      ora_array.get_oracle_array.to_a.map{|v| v ? v.string_value : nil }
+      ora_array.get_oracle_array.to_a.map{|v| oracle_raw_as_string(v) }
     end
 
     # Always returns dates are Ruby Time objects
     def retrieve_as_date(ora_array)
-      ora_array.get_array.to_a.map{|v| v ? Time.at(v.get_time.to_f / 1000) : nil }
-    end
-
-    def date_to_java(date)
-      if date
-        if date.is_a? Date
-           Java::JavaSql::Date.new(date.strftime("%s").to_f * 1000)
-        elsif date.is_a? Time
-          TIMESTAMP.new(Java::JavaSql::Timestamp.new(date.to_f * 1000))
-        else
-          raise "#{date.class}: unimplemented Ruby date type for arrays. Use Date or Time"
-        end
-      else
-        nil
-      end
+      ora_array.get_array.to_a.map{|v| java_date_as_time(v) }
     end
 
   end

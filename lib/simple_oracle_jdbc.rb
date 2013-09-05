@@ -13,6 +13,7 @@ module SimpleOracleJDBC
   java_import 'oracle.sql.ARRAY'
 end
 
+require 'simple_oracle_jdbc/type_map'
 require 'simple_oracle_jdbc/bindings'
 require 'simple_oracle_jdbc/result_set'
 #require 'interface'

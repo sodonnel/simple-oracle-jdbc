@@ -1,6 +1,8 @@
 module SimpleOracleJDBC
   module Binding
 
+    include SimpleOracleJDBC::TypeMap
+
     # Provides a set of methods to map Ruby types to their JDBC equivalent and back again.
 
 
@@ -127,8 +129,7 @@ module SimpleOracleJDBC
     def bind_date(obj, v, i)
       if v
         # %Q is micro seconds since epoch. Divide by 1000 to get milli-sec
-        jdbc_date = Java::JavaSql::Date.new(v.strftime("%s").to_f * 1000)
-        obj.set_date(i, jdbc_date)
+        obj.set_date(i, ruby_date_as_jdbc_date(v))
       else
         obj.set_null(i, OracleTypes::DATE)
       end
@@ -138,8 +139,7 @@ module SimpleOracleJDBC
       if v
         # Need to use an Oracle TIMESTAMP - dates don't allow a time to be specified
         # for some reason, even though a date in Oracle contains a time.
-        jdbc_time = TIMESTAMP.new(Java::JavaSql::Timestamp.new(v.to_f * 1000))
-        obj.setTIMESTAMP(i, jdbc_time)
+        obj.setTIMESTAMP(i, ruby_time_as_jdbc_timestamp(v))
       else
         obj.set_null(i, OracleTypes::TIMESTAMP)
       end
@@ -163,13 +163,7 @@ module SimpleOracleJDBC
 
     def bind_number(obj, v, i)
       if v
-        # Avoid warning that appeared in JRuby 1.7.3. There are many signatures of
-        # Java::OracleSql::NUMBER and it has to pick one. This causes a warning. This
-        # technique works around the warning and forces it to the the signiture with a
-        # double input - see https://github.com/jruby/jruby/wiki/CallingJavaFromJRuby
-        # under the Constructors section.
-        construct = Java::OracleSql::NUMBER.java_class.constructor(Java::double)
-        obj.set_number(i, construct.new_instance(v))
+        obj.set_number(i, ruby_number_as_jdbc_number(v))
       else
         obj.set_null(i, OracleTypes::NUMBER)
       end
@@ -183,30 +177,20 @@ module SimpleOracleJDBC
 
     def bind_raw(obj, v, i)
       if v
-        raw = Java::OracleSql::RAW.new(v)
-        obj.set_raw(i, raw)
+        obj.set_raw(i, ruby_raw_string_as_jdbc_raw(v))
       else
         obj.set_null(i, OracleTypes::RAW)
       end
     end
 
-
     def retrieve_date(obj, i)
       jdate = obj.get_date(i)
-      if jdate
-        Date.new(jdate.get_year+1900, jdate.get_month+1, jdate.get_date)
-      else
-        nil
-      end
+      java_date_as_date(jdate)
     end
 
     def retrieve_time(obj, i)
       jdate = obj.get_timestamp(i)
-      if jdate
-        Time.at(jdate.get_time.to_f / 1000)
-      else
-        nil
-      end
+      java_date_as_time(jdate)
     end
 
     def retrieve_string(obj, i)
@@ -216,19 +200,14 @@ module SimpleOracleJDBC
     def retrieve_int(obj, i)
       v = obj.get_int(i)
       if obj.was_null
-        nil
-      else
-        v
+        v = nil
       end
+      java_integer_as_integer(v)
     end
 
     def retrieve_number(obj, i)
       v = obj.get_number(i)
-      if v
-        v.double_value
-      else
-        nil
-      end
+      java_number_as_float(v)
     end
 
     def retrieve_refcursor(obj, i)
@@ -241,11 +220,7 @@ module SimpleOracleJDBC
 
     def retrieve_raw(obj, i)
       v = obj.get_raw(i)
-      if v
-        v.string_value
-      else
-        nil
-      end
+      oracle_raw_as_string(v)
     end
 
   end
