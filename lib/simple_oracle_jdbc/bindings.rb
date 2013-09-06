@@ -86,6 +86,8 @@ module SimpleOracleJDBC
         bind_raw(obj, value, i)
       elsif type == SimpleOracleJDBC::OraArray
         value.bind_to_call(@connection, obj, i)
+      elsif type == SimpleOracleJDBC::OraRecord
+        value.bind_to_call(@connection, obj, i)
       else
         raise UnknownBindType, type.to_s
       end
@@ -118,7 +120,7 @@ module SimpleOracleJDBC
 
     # :nodoc:
     def bind_out_parameter(obj, index, type, value)
-      if type == SimpleOracleJDBC::OraArray
+      if type == SimpleOracleJDBC::OraArray or type == SimpleOracleJDBC::OraRecord
         value.register_as_out_parameter(@connection, obj, index)
       else
         internal_type = RUBY_TO_JDBC_TYPES[type] || OracleTypes::VARCHAR

@@ -11,6 +11,9 @@ module SimpleOracleJDBC
   java_import 'java.sql.SQLException'
   java_import 'oracle.sql.ArrayDescriptor'
   java_import 'oracle.sql.ARRAY'
+  java_import 'oracle.sql.StructDescriptor'
+  java_import 'oracle.sql.STRUCT'
+
 end
 
 require 'simple_oracle_jdbc/type_map'
@@ -21,3 +24,4 @@ require 'simple_oracle_jdbc/sql'
 require 'simple_oracle_jdbc/interface'
 require 'simple_oracle_jdbc/db_call'
 require 'simple_oracle_jdbc/ora_array'
+require 'simple_oracle_jdbc/ora_record'

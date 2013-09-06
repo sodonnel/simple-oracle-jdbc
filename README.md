@@ -244,9 +244,70 @@ For in out parameters, simply use the 3 element array syntax as with out paramet
 
 The array feature has been tested with Oracle arrays of char, varchar2, integer, number, date, timestamp and raw.
 
-## What about Record Types and Arrays of Records?
+# PLSQL Record Types
 
-Maybe someday!
+Using a similar interface as for PLSQL Arrays, it is possible to bind PLSQL Record types to a stored procedure. A PLSQL record type is define on the database using something like the following:
+
+    create or replace type t_record as object (
+      p_varchar varchar2(10),
+      p_integer integer,
+      p_number  number,
+      p_char    char(10),
+      p_date    date,
+      p_timestamp timestamp,
+      p_raw     raw(10)
+    );
+    /
+    
+    create or replace function test_record(i_record t_record)
+      return t_record
+    is
+    begin
+      return i_record;
+    end;
+    /
+
+Using the type and function above, it is possible to pass a Ruby Array of values for the record and receive a Ruby Array as a response:
+
+    call = conn.prepare_proc("begin
+                               :out_array := test_record(:i_array);
+                              end;")
+    record = ["The String", 123, 456.789, 'THE CHAR', Time.gm(2013,11,23), Time.gm(2013,12,23,12,24,36), 'ED12ED12']
+    call.execute([SimpleOracleJDBC::OraRecord, SimpleOracleJDBC::OraRecord.new('t_record', nil), :out],
+                  SimpleOracleJDBC::OraRecord.new('t_record', record))
+    return_array = call[1]
+    return_array.each do |v|
+      puts "The value is: #{v}"
+    end
+    
+    # The value is: The String
+    # The value is: 123.0
+    # The value is: 456.789
+    # The value is: THE CHAR
+    # The value is: 2013-11-23 00:00:00 +0000
+    # The value is: 2013-12-23 12:24:36 +0000
+    # The value is: ED12ED12
+
+There are a few important differences in the syntax for record calls.
+
+To pass a record in, you must create a SimpleOracleJDBC::OraRecord object. This takes 2 parameters:
+
+1. The name of the type on the Oracle database
+2. A Ruby array of values to pass to Oracle.
+
+The array of Ruby values must contain the same number of fields in the record. To set a field in the record to null pass nil inside the array.
+
+To receive a record from a procedure call, again use the SimpleOracleJDBC::OraRecord class. The syntax is similar to receiving any output variable from a stored procedure (ie the 3 element array syntax), except the 2nd element in the array is no longer nil. It is important to create an instance of the OraRecord object using the name of the Oracle Type, as this is required to retrieve the results from the PLSQL call.
+
+For in out parameters, simply use the 3 element array syntax as with out parameters, only pass a Ruby array as the second parameter.
+
+# Arrays of PLSQL Records
+
+Hopefully soon.
+
+# What About Nested Types?
+
+A nested type is a type that has another type as one of its attributes. Right now they are not supported and I have no plans to support them.
 
 # SQL Arrays
 

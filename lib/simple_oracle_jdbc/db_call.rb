@@ -104,7 +104,7 @@ module SimpleOracleJDBC
           retrieve_refcursor(@call, i)
         elsif bind[0] == :raw
           retrieve_raw(@call, i)
-        elsif bind[0] == SimpleOracleJDBC::OraArray
+        elsif bind[0] == SimpleOracleJDBC::OraArray or bind[0] == SimpleOracleJDBC::OraRecord
           bind[1].retrieve_out_value(@connection, @call, i)
         end
       else

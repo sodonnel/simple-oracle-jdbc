@@ -26,6 +26,24 @@ create or replace type t_timestamp_tab is table of timestamp;
 create or replace type t_raw_tab is table of raw(100);
 /
 
+create or replace type t_record as object (
+  p_varchar varchar2(10),
+  p_integer integer,
+  p_number  number,
+  p_char    char(10),
+  p_date    date,
+  p_timestamp timestamp,
+  p_raw     raw(10)
+);
+/
+
+create or replace function test_record(i_record t_record)
+  return t_record
+is
+begin
+  return i_record;
+end;
+/
 
 create or replace function test_array_varchar(i_array t_varchar2_tab)
   return t_varchar2_tab
