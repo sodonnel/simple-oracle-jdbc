@@ -258,6 +258,18 @@ class BindingTest < Test::Unit::TestCase
     assert_equal('def', results[1][0])
   end
 
+  def test_array_of_records_can_be_bound_to_sql
+    sql = @interface.execute_sql("select * from table(:b_tab)",
+                                 SimpleOracleJDBC::OraArray.new('t_record_tab', [
+                                                                  ["S1", nil, nil, nil, nil, nil, nil],
+                                                                  ["S2", nil, nil, nil, nil, nil, nil]                                                                                           ]))
+    results = sql.all_array
+    assert_equal(2, results.length)
+    assert_equal('S1', results[0][0])
+    assert_equal('S2', results[1][0])
+    assert_equal(nil, results[1][1])
+  end
+
   def test_unknown_data_type_from_sql_raises_exeception
     sql = @interface.execute_sql("select cast('hello there' as nvarchar2(1000)) from dual")
     assert_raises SimpleOracleJDBC::UnknownSQLType do

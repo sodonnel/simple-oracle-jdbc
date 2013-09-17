@@ -4,12 +4,13 @@ $:.unshift File.expand_path(File.dirname(__FILE__))
 require 'simple_oracle_jdbc'
 require 'test/unit'
 
+
 module TestHelper
 
   DB_USER     = 'sodonnel'
-  DB_PASSWORD = 'sodonnell'
+  DB_PASSWORD = 'sodonnel'
   DB_SERVICE  = 'local11gr2.world'
-  DB_HOST     = 'localhost'
+  DB_HOST     = '192.168.56.1'
   DB_PORT     = '1521'
 
   @@interface ||= SimpleOracleJDBC::Interface.create(DB_USER,

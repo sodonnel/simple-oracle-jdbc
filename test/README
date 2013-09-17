@@ -37,6 +37,9 @@ create or replace type t_record as object (
 );
 /
 
+create or replace type t_record_tab as table of t_record;
+/
+
 create or replace function test_record(i_record t_record)
   return t_record
 is
@@ -44,6 +47,21 @@ begin
   return i_record;
 end;
 /
+
+create or replace function test_array_of_records(i_array t_record_tab)
+  return t_record_tab
+is
+  v_return_value t_record_tab;
+begin
+  v_return_value := t_record_tab();
+  for i in 1..i_array.count loop
+    v_return_value.extend(1);
+    v_return_value(v_return_value.count) := i_array(i);
+  end loop;
+  return v_return_value;
+end;
+/
+
 
 create or replace function test_array_varchar(i_array t_varchar2_tab)
   return t_varchar2_tab

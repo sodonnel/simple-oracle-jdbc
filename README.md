@@ -303,11 +303,46 @@ For in out parameters, simply use the 3 element array syntax as with out paramet
 
 # Arrays of PLSQL Records
 
-Hopefully soon.
+If you define a PLSQL array as table of a record type, then you have an array of PLSQL records. For example, building on the record type created above:
+
+    create or replace type t_record_tab as table of t_record;
+    /
+    
+    create or replace function test_array_of_records(i_array t_record_tab)
+      return t_record_tab
+    is
+      v_return_value t_record_tab;
+    begin
+      v_return_value := t_record_tab();
+      for i in 1..i_array.count loop
+        v_return_value.extend(1);
+        v_return_value(v_return_value.count) := i_array(i);
+      end loop;
+      return v_return_value;
+    end;
+    /
+
+Binding an array like this to a stored procedure works just like binding an array of values. The only difference is that each value passed in the input array, must also be an array. Each of those arrays are then converted into the internal Oracle format using the OraRecord class. For example:
+
+    call = conn.prepare_proc("begin
+                               :out_array := test_array_of_records(:i_array);
+                              end;")
+    record = ["The String", 123, 456.789, 'THE CHAR', Time.gm(2013,11,23), Time.gm(2013,12,23,12,24,36), 'ED12ED12']
+    call.execute([SimpleOracleJDBC::OraArray, SimpleOracleJDBC::OraArray.new('t_record_tab', nil), :out],
+               # ! Note how the record is an array inside of an array
+                  SimpleOracleJDBC::OraArray.new('t_record_tab', [record]))
+    return_array = call[1]
+    return_array.each do |v|
+      # Each return element in the array is an array
+      puts "The value is: #{v[0]}"
+    end
+    
+    # The value is: The String
+
 
 # What About Nested Types?
 
-A nested type is a type that has another type as one of its attributes. Right now they are not supported and I have no plans to support them.
+A nested type is a type that has another type as one of its attributes. Right now they are not supported.
 
 # SQL Arrays
 
@@ -317,6 +352,14 @@ Similar to PLSQL arrays, it is possible to bind an array of values to an SQL cal
                                      SimpleOracleJDBC::OraArray.new('t_varchar2_tab', ['abc', 'def']))
 
 Again, instead of passing a simple Ruby type, you need to pass an instance of OraArray as the bind variable.
+
+This also works with PLSQL Arrays of Records, eg:
+
+    sql = @interface.execute_sql("select * from table(:b_tab)",
+                                 SimpleOracleJDBC::OraArray.new('t_record_tab', [
+                                                                  ["S1", nil, nil, nil, nil, nil, nil],
+                                                                  ["S2", nil, nil, nil, nil, nil, nil]                                                                                           ]))
+
 
 More complex types are not yet supported.
 
@@ -330,7 +373,7 @@ Bindable types that are not yet supported:
 
 Types that cannot be retrieved from an SQL result set
 
-  * CLOB
+  * CLOB - is returned as a string so long as it is under 4000 characters
   * Cursor
   * Long
   * nvarchar etc

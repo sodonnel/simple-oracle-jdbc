@@ -211,4 +211,47 @@ class OraArrayTest < Test::Unit::TestCase
     end
   end
 
+  def test_ora_array_of_records_can_be_bound_and_retrieved
+     call = @interface.prepare_proc("begin
+                                      :out_value := test_array_of_records(:i_array);
+                                    end;")
+    record = ["The String", 123, 456.789, 'THE CHAR', Time.gm(2013,11,23), Time.gm(2013,12,23,12,24,36), 'ED12ED12']
+    record2 = record.dup
+    record2[0] = "String2"
+
+    call.execute([SimpleOracleJDBC::OraArray, SimpleOracleJDBC::OraArray.new('t_record_tab', nil), :out],
+                 SimpleOracleJDBC::OraArray.new('t_record_tab', [ record, record2 ]))
+    return_array = call[1]
+    assert_equal(2, return_array.length)
+    assert_equal("The String", return_array.first[0])
+    assert_equal(123, return_array.first[1])
+    assert_equal(456.789, return_array.first[2])
+
+    assert_equal("String2", return_array[1][0])
+  end
+
+  def test_empty_ora_array_of_records_can_be_bound_and_retrieved
+    call = @interface.prepare_proc("begin
+                                      :out_value := test_array_of_records(:i_array);
+                                    end;")
+
+    call.execute([SimpleOracleJDBC::OraArray, SimpleOracleJDBC::OraArray.new('t_record_tab', nil), :out],
+                 SimpleOracleJDBC::OraArray.new('t_record_tab', nil))
+    return_array = call[1]
+    assert_equal(0, return_array.length)
+  end
+
+  def test_ora_array_of_nil_records_can_be_bound_and_retrieved
+    call = @interface.prepare_proc("begin
+                                      :out_value := test_array_of_records(:i_array);
+                                    end;")
+    record = [nil, nil, nil, nil, nil, nil, nil]
+
+    call.execute([SimpleOracleJDBC::OraArray, SimpleOracleJDBC::OraArray.new('t_record_tab', nil), :out],
+                 SimpleOracleJDBC::OraArray.new('t_record_tab', [ record ]))
+    return_array = call[1]
+    assert_equal(1, return_array.length)
+    assert_equal(nil, return_array.first[0])
+  end
+
 end
