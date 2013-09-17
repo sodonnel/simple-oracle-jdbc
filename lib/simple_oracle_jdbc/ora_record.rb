@@ -57,8 +57,8 @@ module SimpleOracleJDBC
     def convert_to_oracle_struct(conn, input)
       set_descriptor(conn)
 
-      if @type_attributes.length != @values.length
-        raise "Not enough values (#{@values.length}) for Oracle record (#{@type_attributes.length})"
+      if @type_attributes.length != input.length
+        raise "Not enough values (#{input.length}) for Oracle record (#{@type_attributes.length})"
       end
 
       temp_array = Array.new
