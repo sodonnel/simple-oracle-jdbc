@@ -157,7 +157,7 @@ module SimpleOracleJDBC
 
     def bind_int(obj, v, i)
       if v
-        obj.set_int(i, v)
+        obj.set_long(i, v)
       else
         obj.set_null(i, OracleTypes::INTEGER)
       end
@@ -200,7 +200,7 @@ module SimpleOracleJDBC
     end
 
     def retrieve_int(obj, i)
-      v = obj.get_int(i)
+      v = obj.get_long(i)
       if obj.was_null
         v = nil
       end
