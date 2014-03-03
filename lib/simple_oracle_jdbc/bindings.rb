@@ -114,7 +114,20 @@ module SimpleOracleJDBC
       when 'RAW'
         retrieve_raw(obj, i)
       else
-        raise UnknownSQLType, obj.get_meta_data.get_column_type_name(i)
+        # If it is not one of the built-in tyes, it could be a user defined type
+        # returning either an array or record type.
+        type_code = obj.get_meta_data.get_column_type(i)
+        if Java::JavaSql::Types::ARRAY == type_code
+          @array ||= Array.new
+          @array[i] ||= OraArray.new(obj.get_meta_data.get_column_type_name(i), nil)
+          @array[i].retrieve_out_value(@connection, obj, i)
+        elsif Java::JavaSql::Types::STRUCT == type_code
+          @array ||= Array.new
+          @array[i] ||= OraRecord.new(obj.get_meta_data.get_column_type_name(i), nil)
+          @array[i].retrieve_out_value(@connection, obj, i)
+        else
+          raise UnknownSQLType, obj.get_meta_data.get_column_type_name(i)
+        end
       end
     end
 

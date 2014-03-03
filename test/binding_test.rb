@@ -277,6 +277,29 @@ class BindingTest < Test::Unit::TestCase
     end
   end
 
+  def test_array_type_can_be_retrieved_from_result_set
+    sql = @interface.execute_sql("select key, cast(collect(val) as t_varchar2_tab) as vals
+                                  from (
+                                    select 1 key, 'helloo' val from dual
+                                    union all
+                                    select 1 key, 'there' val from dual
+                                  ) group by key")
 
+    results = sql.all_array
+    assert_equal(1, results.length)
+    assert_equal(1.0, results[0][0])
+    assert_equal(Array, results[0][1].class)
+    assert_equal('helloo', results[0][1][0])
+    assert_equal('there', results[0][1][1])
+  end
+
+  def test_record_type_can_be_retrieved_from_result_set
+    sql = @interface.execute_sql("select t_record('abc', 1, 2.2, 'a', sysdate, sysdate, '0101')
+                                  from dual")
+    results = sql.all_array
+    assert_equal(1, results.length)
+    assert_equal(7, results[0][0].length)
+    assert_equal('abc', results[0][0][0])
+  end
 
 end

@@ -13,7 +13,7 @@ module SimpleOracleJDBC
   java_import 'oracle.sql.ARRAY'
   java_import 'oracle.sql.StructDescriptor'
   java_import 'oracle.sql.STRUCT'
-
+  java_import 'java.sql.Types'
 end
 
 require 'simple_oracle_jdbc/type_map'
