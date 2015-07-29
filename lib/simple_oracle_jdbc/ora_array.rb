@@ -73,6 +73,9 @@ module SimpleOracleJDBC
     def retrieve_out_value(conn, stmt, index)
       set_descriptor(conn)
       ora_array = stmt.get_array(index)
+      if ora_array.nil?
+        return nil
+      end
       base_type = ora_array.get_base_type_name
       if base_type == 'VARCHAR' or base_type == 'CHAR'
         retrieve_as_string(ora_array)

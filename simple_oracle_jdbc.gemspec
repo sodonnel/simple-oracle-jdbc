@@ -1,6 +1,6 @@
 Gem::Specification.new do |s| 
   s.name = "simpleOracleJDBC"
-  s.version = "0.3.1"
+  s.version = "0.3.2"
   s.author = "Stephen O'Donnell"
   s.email = "stephen@betteratoracle.com"
   s.homepage = "http://betteratoracle.com"
